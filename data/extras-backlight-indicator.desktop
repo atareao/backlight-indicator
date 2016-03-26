@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name = BackLight Indicator
+GenericName = BackLight Indicator
+Comment = Adjusts a laptop's brightness automatically
+Exec = /opt/extras.ubuntu.com/backlight-indicator/bin/backlight-indicator
+Icon = /opt/extras.ubuntu.com/backlight-indicator/share/pixmaps/backlight-indicator.png
+Type = Application
+Terminal = false
+StartupNotify = true
+Encoding = utf-8
+Categories = Utility;
+Keywords=screen;brightness;camera;lcd;panel;darkness;lightness;adjust;dimmer;webcam;

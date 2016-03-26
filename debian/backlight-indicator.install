@@ -1,0 +1,6 @@
+bin/backlight-indicator /opt/extras.ubuntu.com/backlight-indicator/bin
+src/*.py /opt/extras.ubuntu.com/backlight-indicator/share/backlight-indicator
+debian/changelog /opt/extras.ubuntu.com/backlight-indicator/share/backlight-indicator
+data/extras-backlight-indicator.desktop /usr/share/applications
+data/extras-backlight-indicator-autostart.desktop /opt/extras.ubuntu.com/backlight-indicator/share/backlight-indicator
+data/icons/*.svg /opt/extras.ubuntu.com/backlight-indicator/share/icons

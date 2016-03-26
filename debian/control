@@ -1,0 +1,20 @@
+Source: backlight-indicator
+Section: utils
+Priority: extra
+Maintainer: Lorenzo Carbonell Cerezo <lorenzo.carbonell.cerezo@gmail.com>
+Build-Depends: debhelper (>= 8), python, python-distutils-extra, python-polib, python3-tz, python3-urllib3,
+Standards-Version: 3.9.4
+Homepage: http://www.atareao.es
+
+Package: backlight-indicator
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends},
+    gir1.2-gtk-3.0,
+    gir1.2-gdkpixbuf-2.0,
+    gir1.2-appindicator3-0.1,
+    gir1.2-notify-0.7,
+    gir1.2-gstreamer-1.0,
+    gir1.2-gst-plugins-base-1.0
+
+Description: Adjusts a laptop's backlight automatically
+ Adjusts a laptop's backlight automatically, by using camera samples taken at a user definable interval. Also you can set backlight at desired level (from 0 to 100) easily from your panel.

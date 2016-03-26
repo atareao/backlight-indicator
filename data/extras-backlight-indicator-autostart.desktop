@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Exec = /opt/extras.ubuntu.com/backlight-indicator/bin/backlight-indicator
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=backlight-indicator-autostart
+Comment=BackLight Indicator official shortcut
+X-GNOME-Autostart-Delay=2

@@ -1,0 +1,34 @@
+===================
+backlight-indicator
+===================
+
+Adjusts a laptop's backlight automatically, by using camera samples taken at a user definable interval. Also you can set backlight at desired level (from 0 to 100) easily from your panel.
+
+============
+Requirements
+============
+
+Required dependencies:
+
+    gir1.2-gtk-3.0,
+    gir1.2-gdkpixbuf-2.0,
+    gir1.2-appindicator3-0.1,
+    gir1.2-notify-0.7,
+    gir1.2-gstreamer-1.0,
+    gir1.2-gst-plugins-base-1.0
+
+========
+Download
+========
+
+Download the package:
+
+    $ git clone https://github.com/atareao/backlight-indicator
+
+=======
+Install
+=======
+
+sudo add-apt-repository ppa:atareao/backlight-indicator
+sudo apt-get update
+sudo apt-get install backlight-indicator
