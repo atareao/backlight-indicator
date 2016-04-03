@@ -30,7 +30,7 @@ SHAREDIR = os.path.join(USRDIR, 'share', 'backlight-indicator')
 if __name__ == '__main__':
     if __file__.startswith(USRDIR) or\
              os.getcwd().startswith(USRDIR):
-        sys.path.insert(1, USRDIR)
+        sys.path.insert(1, SHAREDIR)
     else:
         sys.path.insert(1, os.path.normpath(os.path.join(os.getcwd(),
                                             '../src')))
