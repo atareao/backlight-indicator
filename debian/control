@@ -10,7 +10,9 @@ Package: backlight-indicator
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
 	python3,
-	python-gi,
+	python3-gi,
+	python3-pil,
+	python3-dbus,
 	gir1.2-gtk-3.0,
 	gir1.2-gdkpixbuf-2.0,
 	gir1.2-appindicator3-0.1,
