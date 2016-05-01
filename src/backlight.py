@@ -21,29 +21,54 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import dbus
+import os
 
-DBUS_INTERFACE = "org.gnome.SettingsDaemon.Power.Screen"
+DBUS_PROPS = {
+    'ubuntu': {
+        "service": "org.gnome.SettingsDaemon",
+        "path": "/org/gnome/SettingsDaemon/Power",
+        "interface": "org.gnome.SettingsDaemon.Power.Screen",
+        "method-set": "SetPercentage",
+        "method-get": "GetPercentage"
+    },
+    'gnome': {
+        "service": "org.gnome.SettingsDaemon",
+        "path": "/org/gnome/SettingsDaemon/Power",
+        "interface": "org.gnome.SettingsDaemon.Power.Screen",
+        "method-set": "SetPercentage",
+        "method-get": "GetPercentage"
+    },
+    'mate': {
+        "service": "org.mate.PowerManager",
+        "path": "/org/mate/PowerManager/Backlight",
+        "interface": "org.mate.PowerManager.Backlight",
+        "method-set": "SetBrightness",
+        "method-get": "GetBrightness"
+    }
+}
 
 
 class BacklightManager:
     def __init__(self):
+        desktop = os.getenv('DESKTOP_SESSION', 'gnome')
+        properties = DBUS_PROPS[desktop]
         self.callback = None
         self.bus = dbus.SessionBus()
         bus = dbus.SessionBus()
-        proxy = bus.get_object("org.gnome.SettingsDaemon",
-                               "/org/gnome/SettingsDaemon/Power")
-        self.dbus_interface = dbus.Interface(proxy,
-                                             dbus_interface=DBUS_INTERFACE)
-        # self.dbus_interface.connect_to_signal("PercentageChanged",
-        #                                      self.backlight_changed)
-
+        proxy = bus.get_object(properties['service'], properties['path'])
+        self.dbus_interface = dbus.Interface(
+            proxy, dbus_interface=properties['interface'])
+        self.get_value = self.dbus_interface.get_dbus_method(
+            properties['method-get'])
+        self.set_value = self.dbus_interface.get_dbus_method(
+            properties['method-set'])
         self.callback = None
 
     def get_backlight(self):
-        return int(self.dbus_interface.GetPercentage())
+        return int(self.get_value())
 
     def set_backlight(self, value):
-        self.dbus_interface.SetPercentage(value)
+        self.set_value(value)
 
     def set_callback(self, callback):
         self.callback = callback
@@ -51,7 +76,6 @@ class BacklightManager:
     def backlight_changed(self, changed_value):
         if self.callback:
             self.callback(changed_value)
-            print(self.get_value())
 
 
 def sample(changed_value):
