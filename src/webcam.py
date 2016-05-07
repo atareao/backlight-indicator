@@ -28,6 +28,7 @@ from PIL import ImageStat
 import os
 import time
 import tempfile
+import math
 try:
     gi.require_version('Gst', '1.0')
 except Exception as e:
@@ -75,7 +76,8 @@ class Webcam:
         stat = ImageStat.Stat(im)
         if os.path.exists(self.temp_file):
             os.remove(self.temp_file)
-        return int(stat.rms[0]/255.0*100)
+        value = int(stat.rms[0]/255.0*100)
+        return value
 
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ from backlight import BacklightManager
 
 
 class SetBacklightDialog(Gtk.Dialog):
-    def __init__(self):
+    def __init__(self, value):
         #
         Gtk.Dialog.__init__(self,
                             'Backlight Indicator | '+_('Set backlight'),
@@ -67,6 +67,7 @@ class SetBacklightDialog(Gtk.Dialog):
         self.backlight.set_adjustment(adjustment3)
         table0.attach(self.backlight, 1, 2, 0, 1,
                       xpadding=5, ypadding=5)
+        self.backlight.set_value(value)
         self.show_all()
 
     def close_ok(self):
@@ -76,7 +77,7 @@ class SetBacklightDialog(Gtk.Dialog):
         return int(self.backlight.get_value())
 
 if __name__ == "__main__":
-    cm = SetBacklightDialog()
+    cm = SetBacklightDialog(80)
     if cm.run() == Gtk.ResponseType.ACCEPT:
         print(cm.get_selected_backlight())
         cm.close_ok()

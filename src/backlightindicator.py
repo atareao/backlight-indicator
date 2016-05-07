@@ -89,17 +89,16 @@ class BacklightIndicator(GObject.GObject):
         self.about_dialog = None
         self.active = False
         self.notification = Notify.Notification.new('', '', None)
-        self.read_preferences()
+        self.active_icon = comun.STATUS_ICON['light'][0]
         #
-        self.indicator = appindicator.Indicator.new('BacklightIndicator',
-                                                    self.active_icon,
-                                                    appindicator.
-                                                    IndicatorCategory.
-                                                    HARDWARE)
+        self.indicator = appindicator.Indicator.new(
+            'BacklightIndicator', self.active_icon,
+            appindicator.IndicatorCategory.HARDWARE)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.connect('scroll-event', self.on_scroll)
         menu = self.get_menu()
         self.indicator.set_menu(menu)
+        self.read_preferences()
         # .connect('session_end', self.on_session_end)
         # self.connect('break_end', self.on_break_end)
 
@@ -107,23 +106,29 @@ class BacklightIndicator(GObject.GObject):
         if direcction == Gdk.ScrollDirection.UP:
             backlight = self.backlightManager.get_backlight()
             backlight += 10 * steps
-            if (backlight > self.maximum_backlight):
-                backlight = self.maximum_backlight
-            self.backlightManager.set_backlight(backlight)
-            self.notification.update('Backlight-Indicator',
-                                     _('Backlight')+': %s' % backlight,
-                                     comun.STATUS_ICON[self.theme][0])
-            self.notification.show()
+            self.set_backlight(backlight)
+            if self.show_value:
+                self.indicator.set_label(str(int(self.backlight)), '')
+            else:
+                self.indicator.set_label('', '')
+            if self.show_notifications:
+                self.notification.update('Backlight-Indicator',
+                                         _('Backlight')+': %s' % backlight,
+                                         comun.STATUS_ICON[self.theme][0])
+                self.notification.show()
         elif direcction == Gdk.ScrollDirection.DOWN:
             backlight = self.backlightManager.get_backlight()
             backlight -= 10 * steps
-            if (backlight < self.minimum_backlight):
-                backlight = self.minimum_backlight
-            self.backlightManager.set_backlight(backlight)
-            self.notification.update('Backlight-Indicator',
-                                     _('Backlight')+': %s' % backlight,
-                                     comun.STATUS_ICON[self.theme][0])
-            self.notification.show()
+            self.set_backlight(backlight)
+            if self.show_value:
+                self.indicator.set_label(str(int(self.backlight)), '')
+            else:
+                self.indicator.set_label('', '')
+            if self.show_notifications:
+                self.notification.update('Backlight-Indicator',
+                                         _('Backlight')+': %s' % backlight,
+                                         comun.STATUS_ICON[self.theme][0])
+                self.notification.show()
 
     # ################# main functions ####################
 
@@ -133,26 +138,35 @@ class BacklightIndicator(GObject.GObject):
         self.version = configuration.get('version')
         self.autostart = configuration.get('autostart')
         self.theme = configuration.get('theme')
+        self.show_notifications = configuration.get('show-notifications')
+        self.show_value = configuration.get('show-value')
         self.minimum_backlight = configuration.get('minimum-backlight')
         self.maximum_backlight = configuration.get('maximum-backlight')
         self.backlight = configuration.get('backlight')
         self.sample_time = configuration.get('sample-time')
-        self.backlight = self.backlightManager.get_backlight()
-        if self.backlight > self.maximum_backlight:
-            self.backlight = self.maximum_backlight
-        elif self.backlight < self.minimum_backlight:
-            self.backlight = self.minimum_backlight
+        self.autoworking = configuration.get('autoworking')
+        backlight = self.backlightManager.get_backlight()
+        self.set_backlight(backlight)
+        if self.show_value:
+            self.indicator.set_label(str(int(self.backlight)), '')
+        else:
+            self.indicator.set_label('', '')
         if self.wid > 0:
             self.active_icon = comun.STATUS_ICON[self.theme][0]
             GLib.source_remove(self.wid)
+            self.do_the_work()
             self.wid = GLib.timeout_add_seconds(self.sample_time * 60,
                                                 self.do_the_work)
         else:
-            self.active_icon = comun.STATUS_ICON[self.theme][1]
+            if self.autoworking:
+                self.start_automatically()
+            else:
+                self.active_icon = comun.STATUS_ICON[self.theme][1]
 
     def save_preferences(self):
         configuration = Configuration()
-        self.backlight = self.backlightManager.get_backlight()
+        backlight = self.backlightManager.get_backlight()
+        self.set_backlight(backlight)
         configuration.set('backlight', self.backlight)
 
     # ################## menu creation ######################
@@ -272,66 +286,98 @@ backlight manually'))
         menu.show()
         return(menu)
 
+    def set_backlight(self, value):
+        if value > self.maximum_backlight or value > 100:
+            value = self.maximum_backlight
+        elif value < self.minimum_backlight or value < 0:
+            value = self.minimum_backlight
+        self.backlight = int(value)
+        self.backlightManager.set_backlight(self.backlight)
+
     def on_set_backlight_menu(self, widget):
-        sbd = SetBacklightDialog()
+        sbd = SetBacklightDialog(self.backlight)
         if sbd.run() == Gtk.ResponseType.ACCEPT:
-            self.backlight = sbd.get_selected_backlight()
+            backlight = sbd.get_selected_backlight()
             sbd.hide()
-            if self.backlight > self.maximum_backlight:
-                self.backlight = self.maximum_backlight
-            elif self.backlight < self.minimum_backlight:
-                self.backlight = self.minimum_backlight
-            self.backlightManager.set_backlight(self.backlight)
+            self.set_backlight(backlight)
+            if self.show_value:
+                self.indicator.set_label(str(int(self.backlight)), '')
+            else:
+                self.indicator.set_label('', '')
+            if self.show_notifications:
+                self.notification.update(
+                    'Backlight-Indicator',
+                    _('Backlight')+': %s' % self.backlight,
+                    comun.STATUS_ICON[self.theme][0])
+                self.notification.show()
+        sbd.destroy()
+
+    def on_capure_backlight_menu(self, widget):
+        backlight = self.webcam.get_backlight()
+        self.set_backlight(backlight)
+        if self.show_value:
+            self.indicator.set_label(str(int(self.backlight)), '')
+        else:
+            self.indicator.set_label('', '')
+        if self.show_notifications:
             self.notification.update('Backlight-Indicator',
                                      _('Backlight')+': %s' % self.backlight,
                                      comun.STATUS_ICON[self.theme][0])
             self.notification.show()
-        sbd.destroy()
 
-    def on_capure_backlight_menu(self, widget):
-        self.backlight = self.webcam.get_backlight()
-        if self.backlight > self.maximum_backlight:
-            self.backlight = self.maximum_backlight
-        elif self.backlight < self.minimum_backlight:
-            self.backlight = self.minimum_backlight
-        self.backlightManager.set_backlight(self.backlight)
-        self.notification.update('Backlight-Indicator',
-                                 _('Backlight')+': %s' % self.backlight,
-                                 comun.STATUS_ICON[self.theme][0])
-        self.notification.show()
+    def start_automatically(self):
+        if self.wid != 0:
+            GLib.source_remove(self.wid)
+            self.wid = 0
+        self.working_menu_item.set_label(_('Stop'))
+        self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
+        if self.show_notifications:
+            self.notification.update('Backlight-Indicator',
+                                     _('Session starts'),
+                                     comun.STATUS_ICON[self.theme][0])
+            self.notification.show()
+        self.do_the_work()
+        self.wid = GLib.timeout_add_seconds(self.sample_time * 60,
+                                            self.do_the_work)
 
     def on_working_menu_item(self, widget):
         if self.wid == 0:
             self.working_menu_item.set_label(_('Stop'))
             self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
-            self.notification.update('Backlight-Indicator',
-                                     _('Session starts'),
-                                     comun.STATUS_ICON[self.theme][0])
+            if self.show_notifications:
+                self.notification.update('Backlight-Indicator',
+                                         _('Session starts'),
+                                         comun.STATUS_ICON[self.theme][0])
+            self.do_the_work()
             self.wid = GLib.timeout_add_seconds(self.sample_time * 60,
                                                 self.do_the_work)
         else:
             self.working_menu_item.set_label(_('Start'))
             self.indicator.set_icon(comun.STATUS_ICON[self.theme][1])
-            self.notification.update('Backlight-Indicator',
-                                     _('Session stops'),
-                                     comun.STATUS_ICON[self.theme][1])
+            if self.show_notifications:
+                self.notification.update('Backlight-Indicator',
+                                         _('Session stops'),
+                                         comun.STATUS_ICON[self.theme][1])
             GLib.source_remove(self.wid)
             self.wid = 0
-        self.notification.show()
+        if self.show_notifications:
+            self.notification.show()
 
     def do_the_work(self):
         if self.wid > 0:
-            self.backlight = self.webcam.get_backlight()
-            if self.backlight > self.maximum_backlight:
-                self.backlight = self.maximum_backlight
-            elif self.backlight < self.minimum_backlight:
-                self.backlight = self.minimum_backlight
-            self.backlightManager.set_backlight(self.backlight)
+            backlight = self.webcam.get_backlight()
+            self.set_backlight(backlight)
+            if self.show_value:
+                self.indicator.set_label(str(int(self.backlight)), '')
+            else:
+                self.indicator.set_label('', '')
             self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
-            self.notification.update('Backlight-Indicator',
-                                     _('Backlight')+': %s' % self.backlight,
-                                     comun.STATUS_ICON[self.theme][0])
-            self.notification.show()
+            if self.show_notifications:
+                self.notification.update(
+                    'Backlight-Indicator',
+                    _('Backlight')+': %s' % self.backlight,
+                    comun.STATUS_ICON[self.theme][0])
+                self.notification.show()
             return True
         else:
             self.wid = 0
@@ -374,14 +420,15 @@ Lorenzo Carbonell <https://launchpad.net/~lorenzo-carbonell>\n
 
     # ##################### callbacks for the menu #######################
     def on_preferences_item(self, widget, data=None):
+        ok = False
         widget.set_sensitive(False)
         preferences_dialog = PreferencesDialog()
         if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
-            preferences_dialog.close_ok()
-            self.read_preferences()
-        preferences_dialog.hide()
+            ok = True
         preferences_dialog.destroy()
-        self.indicator.set_icon(self.active_icon)
+        if ok is True:
+            self.read_preferences
+            self.indicator.set_icon(self.active_icon)
         widget.set_sensitive(True)
 
     def on_quit_item(self, widget, data=None):

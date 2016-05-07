@@ -92,6 +92,22 @@ class PreferencesDialog(Gtk.Dialog):
                        xpadding=5,
                        ypadding=5,
                        xoptions=Gtk.AttachOptions.SHRINK)
+        label13 = Gtk.Label(_('Show notifications')+':')
+        label13.set_alignment(0, 0.5)
+        table11.attach(label13, 0, 1, 2, 3, xpadding=5, ypadding=5)
+        self.switch3 = Gtk.Switch()
+        table11.attach(self.switch3, 1, 2, 2, 3,
+                       xpadding=5,
+                       ypadding=5,
+                       xoptions=Gtk.AttachOptions.SHRINK)
+        label14 = Gtk.Label(_('Show backlight value')+':')
+        label14.set_alignment(0, 0.5)
+        table11.attach(label14, 0, 1, 3, 4, xpadding=5, ypadding=5)
+        self.switch4 = Gtk.Switch()
+        table11.attach(self.switch4, 1, 2, 3, 4,
+                       xpadding=5,
+                       ypadding=5,
+                       xoptions=Gtk.AttachOptions.SHRINK)
         # ***************************************************************
         hbox2 = Gtk.HBox(spacing=5)
         hbox2.set_border_width(5)
@@ -149,6 +165,14 @@ class PreferencesDialog(Gtk.Dialog):
         self.sample_time.set_adjustment(adjustment4)
         table2.attach(self.sample_time, 1, 2, 3, 4,
                       xpadding=5, ypadding=5, xoptions=Gtk.AttachOptions.FILL)
+        label25 = Gtk.Label(_('Set backlight automatically on start')+':')
+        label25.set_alignment(0, 0.5)
+        table2.attach(label25, 0, 1, 4, 5,
+                      xpadding=5, ypadding=5)
+        self.autoworking = Gtk.Switch()
+        table2.attach(self.autoworking, 1, 2, 4, 5,
+                      xpadding=5, ypadding=5, xoptions=Gtk.AttachOptions.SHRINK)
+
         #
         self.load_preferences()
         #
@@ -192,12 +216,15 @@ class PreferencesDialog(Gtk.Dialog):
             configuration.read()
         self.switch1.set_active(os.path.exists(comun.AUTOSTARTD))
         self.switch2.set_active(configuration.get('theme') == 'light')
+        self.switch3.set_active(configuration.get('show-notifications'))
+        self.switch4.set_active(configuration.get('show-value'))
         self.minimum_backlight.set_value(
             configuration.get('minimum-backlight'))
         self.maximum_backlight.set_value(
             configuration.get('maximum-backlight'))
         self.backlight.set_value(configuration.get('backlight'))
         self.sample_time.set_value(configuration.get('sample-time'))
+        self.autoworking.set_active(configuration.get('autoworking'))
 
     def save_preferences(self):
         configuration = Configuration()
@@ -208,6 +235,8 @@ class PreferencesDialog(Gtk.Dialog):
             configuration.set('theme', 'light')
         else:
             configuration.set('theme', 'dark')
+        configuration.set('show-notifications', self.switch3.get_active())
+        configuration.set('show-value', self.switch4.get_active())
         configuration.set('minimum-backlight',
                           self.minimum_backlight.get_value())
         configuration.set('maximum-backlight',
@@ -216,6 +245,8 @@ class PreferencesDialog(Gtk.Dialog):
                           self.backlight.get_value())
         configuration.set('sample-time',
                           self.sample_time.get_value())
+        configuration.set('autoworking',
+                          self.autoworking.get_active())
         configuration.save()
 
 if __name__ == "__main__":

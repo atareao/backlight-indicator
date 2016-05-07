@@ -45,7 +45,10 @@ PARAMS = {'first-time': True,
           'minimum-backlight': 0,
           'maximum-backlight': 100,
           'backlight': 50,
-          'sample-time': 5
+          'sample-time': 5,
+          'autoworking': True,
+          'show-notifications': True,
+          'show-value': False
           }
 
 APP = 'backlight-indicator'
