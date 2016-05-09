@@ -1,4 +1,4 @@
-backlight-indicator (0.1.2-0extras16.04.0) xenail; urgency=medium
+backlight-indicator (0.1.2-0extras16.04.0) xenial; urgency=medium
 
   * Option to show notifications
   * Option to show backlight on indicator
