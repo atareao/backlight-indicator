@@ -171,12 +171,83 @@ class PreferencesDialog(Gtk.Dialog):
                       xpadding=5, ypadding=5)
         self.autoworking = Gtk.Switch()
         table2.attach(self.autoworking, 1, 2, 4, 5,
-                      xpadding=5, ypadding=5, xoptions=Gtk.AttachOptions.SHRINK)
-
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK)
+        # ***************************************************************
+        hbox3 = Gtk.HBox(spacing=5)
+        hbox3.set_border_width(5)
+        notebook.append_page(hbox3, Gtk.Label.new(_('Energy')))
+        frame3 = Gtk.Frame()
+        hbox3.pack_start(frame3, False, True, 1)
+        table3 = Gtk.Table(4, 2, False)
+        frame3.add(table3)
+        # ***************************************************************
+        label31 = Gtk.Label(_('Change backlight on ac?')+' :')
+        label31.set_alignment(0, 0.5)
+        table3.attach(label31, 0, 1, 0, 1,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        self.change_on_ac = Gtk.Switch()
+        self.change_on_ac.connect('state-set',
+                                  self.on_change_on_ac)
+        table3.attach(self.change_on_ac, 1, 2, 0, 1,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        label32 = Gtk.Label(_('Value on ac')+':')
+        label32.set_alignment(0, 0.5)
+        table3.attach(label32, 0, 1, 1, 2,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        adjustment5 = Gtk.Adjustment(0, 0, 101, 5, 10, 1)
+        self.value_on_ac = Gtk.Scale()
+        self.value_on_ac.set_digits(0)
+        self.value_on_ac.set_size_request(200, 10)
+        self.value_on_ac.set_adjustment(adjustment5)
+        table3.attach(self.value_on_ac, 1, 2, 1, 2,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        label33 = Gtk.Label(_('Reduce backlight on low power?')+' :')
+        label33.set_alignment(0, 0.5)
+        table3.attach(label33, 0, 1, 2, 3,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        self.change_on_low_power = Gtk.Switch()
+        self.change_on_low_power.connect('state-set',
+                                         self.on_change_on_low_power)
+        table3.attach(self.change_on_low_power, 1, 2, 2, 3,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        label34 = Gtk.Label(_('Value on low power')+':')
+        label34.set_alignment(0, 0.5)
+        table3.attach(label34, 0, 1, 3, 4,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        adjustment6 = Gtk.Adjustment(0, 0, 101, 5, 10, 1)
+        self.value_on_low_power = Gtk.Scale()
+        self.value_on_low_power.set_digits(0)
+        self.value_on_low_power.set_size_request(200, 10)
+        self.value_on_low_power.set_adjustment(adjustment6)
+        table3.attach(self.value_on_low_power, 1, 2, 3, 4,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
         #
         self.load_preferences()
         #
         self.show_all()
+
+    def on_change_on_ac(self, widget, on_ac):
+        self.value_on_ac.set_sensitive(on_ac)
+
+    def on_change_on_low_power(self, widget, on_low_power):
+        self.value_on_low_power.set_sensitive(on_low_power)
 
     def on_minimum_backlight_changed(self, widget):
         minimum_backlight = self.minimum_backlight.get_value()
@@ -225,6 +296,17 @@ class PreferencesDialog(Gtk.Dialog):
         self.backlight.set_value(configuration.get('backlight'))
         self.sample_time.set_value(configuration.get('sample-time'))
         self.autoworking.set_active(configuration.get('autoworking'))
+        self.change_on_ac.set_active(
+            configuration.get('change-backlight-on-ac'))
+        self.value_on_ac.set_value(configuration.get('backlight-on-ac'))
+        self.change_on_low_power.set_active(
+            configuration.get('reduce-backlight-on-low-power'))
+        self.value_on_low_power.set_value(
+            configuration.get('backlight-on-low-power'))
+        self.value_on_ac.set_sensitive(
+            self.change_on_ac.get_active())
+        self.value_on_low_power.set_sensitive(
+            self.change_on_low_power.get_active())
 
     def save_preferences(self):
         configuration = Configuration()
@@ -247,6 +329,14 @@ class PreferencesDialog(Gtk.Dialog):
                           self.sample_time.get_value())
         configuration.set('autoworking',
                           self.autoworking.get_active())
+        configuration.set('change-backlight-on-ac',
+                          self.change_on_ac.get_active())
+        configuration.set('backlight-on-ac',
+                          self.value_on_ac.get_value())
+        configuration.set('reduce-backlight-on-low-power',
+                          self.change_on_low_power.get_active())
+        configuration.set('backlight-on-low-power',
+                          self.value_on_low_power.get_value())
         configuration.save()
 
 if __name__ == "__main__":

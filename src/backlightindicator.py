@@ -22,6 +22,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gi
+try:
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('AppIndicator3', '0.1')
+    gi.require_version('Notify', '0.7')
+    gi.require_version('Gst', '1.0')
+except Exception as e:
+    print(e)
+    exit(-1)
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -29,6 +37,7 @@ from gi.repository import AppIndicator3 as appindicator
 from gi.repository import Notify
 from gi.repository import GObject
 from gi.repository import GLib
+import time
 import os
 import webbrowser
 import dbus
@@ -39,6 +48,7 @@ from comun import _
 import comun
 from webcam import Webcam
 from backlight import BacklightManager
+from battery import Battery
 
 gi.require_version('Gtk', '3.0')
 
@@ -82,6 +92,7 @@ class BacklightIndicator(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.wid = 0
+        self.battery = Battery()
         self.webcam = Webcam()
         self.backlightManager = BacklightManager()
         self.icon = comun.ICON
@@ -145,6 +156,11 @@ class BacklightIndicator(GObject.GObject):
         self.backlight = configuration.get('backlight')
         self.sample_time = configuration.get('sample-time')
         self.autoworking = configuration.get('autoworking')
+        self.change_on_ac = configuration.get('change-backlight-on-ac')
+        self.value_on_ac = configuration.get('backlight-on-ac')
+        self.change_on_low_power = configuration.get(
+            'reduce-backlight-on-low-power')
+        self.value_on_low_power = configuration.get('backlight-on-low-power')
         backlight = self.backlightManager.get_backlight()
         self.set_backlight(backlight)
         if self.show_value:
@@ -250,7 +266,7 @@ class BacklightIndicator(GObject.GObject):
         capture_backlight_menu = Gtk.MenuItem().new_with_label(_('Capture \
 backlight'))
         capture_backlight_menu.connect('activate',
-                                       self.on_capure_backlight_menu)
+                                       self.on_capture_backlight_menu)
         capture_backlight_menu.show()
         menu.append(capture_backlight_menu)
         #
@@ -286,11 +302,12 @@ backlight manually'))
         menu.show()
         return(menu)
 
-    def set_backlight(self, value):
-        if value > self.maximum_backlight or value > 100:
-            value = self.maximum_backlight
-        elif value < self.minimum_backlight or value < 0:
-            value = self.minimum_backlight
+    def set_backlight(self, value, force=False):
+        if not force:
+            if value > self.maximum_backlight or value > 100:
+                value = self.maximum_backlight
+            elif value < self.minimum_backlight or value < 0:
+                value = self.minimum_backlight
         self.backlight = int(value)
         self.backlightManager.set_backlight(self.backlight)
 
@@ -312,8 +329,9 @@ backlight manually'))
                 self.notification.show()
         sbd.destroy()
 
-    def on_capure_backlight_menu(self, widget):
+    def on_capture_backlight_menu(self, widget):
         backlight = self.webcam.get_backlight()
+        print('=== captured backlight: %s ===' % (backlight))
         self.set_backlight(backlight)
         if self.show_value:
             self.indicator.set_label(str(int(self.backlight)), '')
@@ -364,24 +382,28 @@ backlight manually'))
             self.notification.show()
 
     def do_the_work(self):
-        if self.wid > 0:
+        print(0)
+        if self.change_on_ac and self.battery.is_ac():
+            print(1)
+            self.set_backlight(self.value_on_ac, True)
+        elif self.change_on_low_power and\
+                self.battery.get_percentage() < 20:
+            self.set_backlight(self.value_on_low_power, True)
+        else:
             backlight = self.webcam.get_backlight()
             self.set_backlight(backlight)
-            if self.show_value:
-                self.indicator.set_label(str(int(self.backlight)), '')
-            else:
-                self.indicator.set_label('', '')
-            self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
-            if self.show_notifications:
-                self.notification.update(
-                    'Backlight-Indicator',
-                    _('Backlight')+': %s' % self.backlight,
-                    comun.STATUS_ICON[self.theme][0])
-                self.notification.show()
-            return True
+        if self.show_value:
+            self.indicator.set_label(str(int(self.backlight)), '')
         else:
-            self.wid = 0
-        return False
+            self.indicator.set_label('', '')
+        self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
+        if self.show_notifications:
+            self.notification.update(
+                'Backlight-Indicator',
+                _('Backlight')+': %s' % self.backlight,
+                comun.STATUS_ICON[self.theme][0])
+            self.notification.show()
+        return True
 
     def get_about_dialog(self):
         """Create and populate the about dialog."""
@@ -420,15 +442,14 @@ Lorenzo Carbonell <https://launchpad.net/~lorenzo-carbonell>\n
 
     # ##################### callbacks for the menu #######################
     def on_preferences_item(self, widget, data=None):
-        ok = False
         widget.set_sensitive(False)
         preferences_dialog = PreferencesDialog()
         if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
-            ok = True
-        preferences_dialog.destroy()
-        if ok is True:
-            self.read_preferences
+            preferences_dialog.hide()
+            preferences_dialog.save_preferences()
+            self.read_preferences()
             self.indicator.set_icon(self.active_icon)
+        preferences_dialog.destroy()
         widget.set_sensitive(True)
 
     def on_quit_item(self, widget, data=None):

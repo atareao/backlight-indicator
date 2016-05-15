@@ -48,7 +48,11 @@ PARAMS = {'first-time': True,
           'sample-time': 5,
           'autoworking': True,
           'show-notifications': True,
-          'show-value': False
+          'show-value': False,
+          'change-backlight-on-ac': False,
+          'backlight-on-ac': 90,
+          'reduce-backlight-on-low-power': True,
+          'backlight-on-low-power': 30
           }
 
 APP = 'backlight-indicator'

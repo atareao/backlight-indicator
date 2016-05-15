@@ -22,6 +22,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gi
+try:
+    gi.require_version('Gst', '1.0')
+except Exception as e:
+    print(e)
+    exit(1)
 from gi.repository import Gst
 from PIL import Image
 from PIL import ImageStat
@@ -29,11 +34,6 @@ import os
 import time
 import tempfile
 import math
-try:
-    gi.require_version('Gst', '1.0')
-except Exception as e:
-    print(e)
-    exit(1)
 
 Gst.init(None)
 
@@ -72,11 +72,22 @@ class Webcam:
         self.pipeline.set_state(Gst.State.PLAYING)
         time.sleep(5)
         self.pipeline.set_state(Gst.State.NULL)
+        # im = Image.open(self.temp_file).convert('L')
         im = Image.open(self.temp_file).convert('L')
         stat = ImageStat.Stat(im)
+        '''
+        print('extrema', stat.extrema)
+        print('mean', stat.mean)
+        print('median', stat.median)
+        print('rms', stat.rms)
+        print('var', stat.var)
+        print('stddev', stat.stddev)
+        print(im.histogram())
+        '''
         if os.path.exists(self.temp_file):
-            os.remove(self.temp_file)
-        value = int(stat.rms[0]/255.0*100)
+            # os.remove(self.temp_file)
+            pass
+        value = int(stat.extrema[0][1]/255.0*100)
         return value
 
 
