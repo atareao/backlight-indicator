@@ -382,15 +382,19 @@ backlight manually'))
             self.notification.show()
 
     def do_the_work(self):
-        print(0)
+        backlight = self.webcam.get_backlight()
         if self.change_on_ac and self.battery.is_ac():
-            print(1)
-            self.set_backlight(self.value_on_ac, True)
+            if backlight < self.value_on_ac:
+                self.set_backlight(self.value_on_ac)
+            else:
+                self.set_backlight(backlight)
         elif self.change_on_low_power and\
                 self.battery.get_percentage() < 20:
-            self.set_backlight(self.value_on_low_power, True)
+            if backlight > self.value_on_low_power:
+                self.set_backlight(self.value_on_low_power)
+            else:
+                self.set_backlight(backlight)
         else:
-            backlight = self.webcam.get_backlight()
             self.set_backlight(backlight)
         if self.show_value:
             self.indicator.set_label(str(int(self.backlight)), '')
