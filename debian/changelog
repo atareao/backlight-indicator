@@ -1,11 +1,11 @@
-backlight-indicator (0.2.0-0extras16.04.0) xenial; urgency=medium
+backlight-indicator (0.2.0-0extras16.04.2) xenial; urgency=medium
 
   * Calculation of bright with maximum value
   * Monitoring of battery
   * Option to set backlight on AC
   * Option to set backlight on low power
 
- -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Sun, 15 May 2016 23:07:11 +0200
+ -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Mon, 16 May 2016 21:32:43 +0200
 
 backlight-indicator (0.1.2-0extras16.04.0) xenial; urgency=medium
 

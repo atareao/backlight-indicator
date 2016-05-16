@@ -37,6 +37,7 @@ from gi.repository import AppIndicator3 as appindicator
 from gi.repository import Notify
 from gi.repository import GObject
 from gi.repository import GLib
+from gi.repository import Gio
 import time
 import os
 import webbrowser
@@ -48,7 +49,8 @@ from comun import _
 import comun
 from webcam import Webcam
 from backlight import BacklightManager
-from battery import Battery
+# from battery import Battery
+from battery2 import Battery
 
 gi.require_version('Gtk', '3.0')
 
@@ -92,7 +94,7 @@ class BacklightIndicator(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.wid = 0
-        self.battery = Battery()
+        # self.battery = Battery()
         self.webcam = Webcam()
         self.backlightManager = BacklightManager()
         self.icon = comun.ICON
@@ -101,6 +103,13 @@ class BacklightIndicator(GObject.GObject):
         self.active = False
         self.notification = Notify.Notification.new('', '', None)
         self.active_icon = comun.STATUS_ICON['light'][0]
+        self._file = Gio.File.new_for_path(
+            '/sys/class/power_supply/BAT0/status')
+        self._monitor = Gio.File.monitor(self._file,
+                                         Gio.FileMonitorFlags.NONE,
+                                         None)
+        self._monitor.connect("changed",
+                              self._on_route_file_changed)
         #
         self.indicator = appindicator.Indicator.new(
             'BacklightIndicator', self.active_icon,
@@ -142,6 +151,8 @@ class BacklightIndicator(GObject.GObject):
                 self.notification.show()
 
     # ################# main functions ####################
+    def _on_route_file_changed(self, data):
+        print('==== changed ====')
 
     def read_preferences(self):
         configuration = Configuration()
@@ -383,13 +394,15 @@ backlight manually'))
 
     def do_the_work(self):
         backlight = self.webcam.get_backlight()
-        if self.change_on_ac and self.battery.is_ac():
+        # if self.change_on_ac and self.battery.is_ac():
+        if self.change_on_ac and Battery.is_ac():
             if backlight < self.value_on_ac:
                 self.set_backlight(self.value_on_ac)
             else:
                 self.set_backlight(backlight)
         elif self.change_on_low_power and\
-                self.battery.get_percentage() < 20:
+                Battery.get_percentage() < 20:
+                # self.battery.get_percentage() < 20:
             if backlight > self.value_on_low_power:
                 self.set_backlight(self.value_on_low_power)
             else:
@@ -481,7 +494,13 @@ def main():
         exit(0)
     Notify.init('BacklightIndicator')
     bi = BacklightIndicator()
+    print(1)
+    loop = GLib.MainLoop()
+    print(2)
+    loop.run()
+    print(3)
     Gtk.main()
+    print(4)
 
 if __name__ == "__main__":
     main()
