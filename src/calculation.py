@@ -28,7 +28,15 @@ def calculate_brightness_for_image(image):
                     r, g, b = pix[x, y]
                     brightness = int(calculate_brightness_for_pixel(r, g, b)/255)
                     data.append(brightness)
-    return mode(data)
+    '''
+    mean()	Arithmetic mean (“average”) of data.
+    median()	Median (middle value) of data.
+    median_low()	Low median of data.
+    median_high()	High median of data.
+    median_grouped()	Median, or 50th percentile, of grouped data.
+    mode() Mode (most common value) of discrete data.
+    '''
+    return mean(data), median(data), median_low(data), median_high(data), median_grouped(data), mode(data)
 
 if __name__ == '__main__':
     print('echo')
