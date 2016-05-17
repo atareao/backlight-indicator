@@ -1,3 +1,12 @@
+backlight-indicator (0.3.0-0extras16.04.0) xenial; urgency=medium
+
+  * Added threads to capture image backlight
+  * Changed calculation of brightness
+  * Added option to set low battery value
+  * Changed backlight set
+
+ -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Tue, 17 May 2016 23:22:22 +0200
+
 backlight-indicator (0.2.0-0extras16.04.2) xenial; urgency=medium
 
   * Calculation of bright with maximum value

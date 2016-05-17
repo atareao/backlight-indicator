@@ -176,7 +176,7 @@ class PreferencesDialog(Gtk.Dialog):
         # ***************************************************************
         hbox3 = Gtk.HBox(spacing=5)
         hbox3.set_border_width(5)
-        notebook.append_page(hbox3, Gtk.Label.new(_('Energy')))
+        notebook.append_page(hbox3, Gtk.Label.new(_('Battery')))
         frame3 = Gtk.Frame()
         hbox3.pack_start(frame3, False, True, 1)
         table3 = Gtk.Table(4, 2, False)
@@ -195,7 +195,7 @@ class PreferencesDialog(Gtk.Dialog):
                       xpadding=5, ypadding=5,
                       xoptions=Gtk.AttachOptions.SHRINK,
                       yoptions=Gtk.AttachOptions.SHRINK)
-        label32 = Gtk.Label(_('Value on ac')+':')
+        label32 = Gtk.Label(_('Backlight value on ac')+':')
         label32.set_alignment(0, 0.5)
         table3.attach(label32, 0, 1, 1, 2,
                       xpadding=5, ypadding=5,
@@ -210,7 +210,7 @@ class PreferencesDialog(Gtk.Dialog):
                       xpadding=5, ypadding=5,
                       xoptions=Gtk.AttachOptions.SHRINK,
                       yoptions=Gtk.AttachOptions.SHRINK)
-        label33 = Gtk.Label(_('Reduce backlight on low power?')+' :')
+        label33 = Gtk.Label(_('Reduce backlight on low battery?')+' :')
         label33.set_alignment(0, 0.5)
         table3.attach(label33, 0, 1, 2, 3,
                       xpadding=5, ypadding=5,
@@ -223,18 +223,33 @@ class PreferencesDialog(Gtk.Dialog):
                       xpadding=5, ypadding=5,
                       xoptions=Gtk.AttachOptions.SHRINK,
                       yoptions=Gtk.AttachOptions.SHRINK)
-        label34 = Gtk.Label(_('Value on low power')+':')
+        label34 = Gtk.Label(_('Low battery value (%)')+':')
         label34.set_alignment(0, 0.5)
         table3.attach(label34, 0, 1, 3, 4,
                       xpadding=5, ypadding=5,
                       xoptions=Gtk.AttachOptions.SHRINK,
                       yoptions=Gtk.AttachOptions.SHRINK)
         adjustment6 = Gtk.Adjustment(0, 0, 101, 5, 10, 1)
+        self.low_battery_value = Gtk.Scale()
+        self.low_battery_value.set_digits(0)
+        self.low_battery_value.set_size_request(200, 10)
+        self.low_battery_value.set_adjustment(adjustment6)
+        table3.attach(self.low_battery_value, 1, 2, 3, 4,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        label35 = Gtk.Label(_('Backlight value on low battery')+':')
+        label35.set_alignment(0, 0.5)
+        table3.attach(label35, 0, 1, 4, 5,
+                      xpadding=5, ypadding=5,
+                      xoptions=Gtk.AttachOptions.SHRINK,
+                      yoptions=Gtk.AttachOptions.SHRINK)
+        adjustment7 = Gtk.Adjustment(0, 0, 101, 5, 10, 1)
         self.value_on_low_power = Gtk.Scale()
         self.value_on_low_power.set_digits(0)
         self.value_on_low_power.set_size_request(200, 10)
-        self.value_on_low_power.set_adjustment(adjustment6)
-        table3.attach(self.value_on_low_power, 1, 2, 3, 4,
+        self.value_on_low_power.set_adjustment(adjustment7)
+        table3.attach(self.value_on_low_power, 1, 2, 4, 5,
                       xpadding=5, ypadding=5,
                       xoptions=Gtk.AttachOptions.SHRINK,
                       yoptions=Gtk.AttachOptions.SHRINK)
@@ -248,6 +263,7 @@ class PreferencesDialog(Gtk.Dialog):
 
     def on_change_on_low_power(self, widget, on_low_power):
         self.value_on_low_power.set_sensitive(on_low_power)
+        self.low_battery_value.set_sensitive(on_low_power)
 
     def on_minimum_backlight_changed(self, widget):
         minimum_backlight = self.minimum_backlight.get_value()
@@ -301,10 +317,14 @@ class PreferencesDialog(Gtk.Dialog):
         self.value_on_ac.set_value(configuration.get('backlight-on-ac'))
         self.change_on_low_power.set_active(
             configuration.get('reduce-backlight-on-low-power'))
+        self.low_battery_value.set_value(
+            configuration.get('low-battery-value'))
         self.value_on_low_power.set_value(
             configuration.get('backlight-on-low-power'))
         self.value_on_ac.set_sensitive(
             self.change_on_ac.get_active())
+        self.low_battery_value.set_sensitive(
+            self.change_on_low_power.get_active())
         self.value_on_low_power.set_sensitive(
             self.change_on_low_power.get_active())
 
@@ -335,6 +355,8 @@ class PreferencesDialog(Gtk.Dialog):
                           self.value_on_ac.get_value())
         configuration.set('reduce-backlight-on-low-power',
                           self.change_on_low_power.get_active())
+        configuration.set('low-battery-value',
+                          self.low_battery_value.get_value())
         configuration.set('backlight-on-low-power',
                           self.value_on_low_power.get_value())
         configuration.save()

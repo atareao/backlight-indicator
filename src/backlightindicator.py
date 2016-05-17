@@ -49,6 +49,7 @@ from comun import _
 import comun
 from webcam import Webcam
 from backlight import BacklightManager
+import threading
 # from battery import Battery
 from battery2 import Battery
 
@@ -58,10 +59,6 @@ WEBICON = os.path.join(comun.SOCIALDIR, 'web.svg')
 TWITTERICON = os.path.join(comun.SOCIALDIR, 'twitter.svg')
 GOOGLEPLUSICON = os.path.join(comun.SOCIALDIR, 'googleplus.svg')
 FACEBOOKICON = os.path.join(comun.SOCIALDIR, 'facebook.svg')
-
-
-def done():
-    return False
 
 
 def add2menu(menu, text=None, icon=None, conector_event=None,
@@ -171,6 +168,7 @@ class BacklightIndicator(GObject.GObject):
         self.value_on_ac = configuration.get('backlight-on-ac')
         self.change_on_low_power = configuration.get(
             'reduce-backlight-on-low-power')
+        self.low_battery_value = configuration.get('low-battery-value')
         self.value_on_low_power = configuration.get('backlight-on-low-power')
         backlight = self.backlightManager.get_backlight()
         self.set_backlight(backlight)
@@ -192,9 +190,8 @@ class BacklightIndicator(GObject.GObject):
 
     def save_preferences(self):
         configuration = Configuration()
-        backlight = self.backlightManager.get_backlight()
-        self.set_backlight(backlight)
         configuration.set('backlight', self.backlight)
+        configuration.save()
 
     # ################## menu creation ######################
 
@@ -314,13 +311,47 @@ backlight manually'))
         return(menu)
 
     def set_backlight(self, value, force=False):
+        if value == self.backlight:
+            return
         if not force:
-            if value > self.maximum_backlight or value > 100:
-                value = self.maximum_backlight
-            elif value < self.minimum_backlight or value < 0:
-                value = self.minimum_backlight
+            if self.change_on_ac and Battery.is_ac():
+                if value < self.value_on_ac:
+                    value = self.value_on_ac
+                else:
+                    if value > self.maximum_backlight or value > 100:
+                        value = self.maximum_backlight
+                    elif value < self.minimum_backlight or value < 0:
+                        value = self.minimum_backlight
+            elif self.change_on_low_power and\
+                    Battery.get_percentage() < self.low_battery_value:
+                if value > self.value_on_low_power:
+                    value = self.value_on_low_power
+                else:
+                    if value > self.maximum_backlight or value > 100:
+                        value = self.maximum_backlight
+                    elif value < self.minimum_backlight or value < 0:
+                        value = self.minimum_backlight
+            else:
+                if value > self.maximum_backlight or value > 100:
+                    value = self.maximum_backlight
+                elif value < self.minimum_backlight or value < 0:
+                    value = self.minimum_backlight
+        old_value = self.backlight
         self.backlight = int(value)
         self.backlightManager.set_backlight(self.backlight)
+        if self.show_value:
+            self.indicator.set_label(str(int(self.backlight)), '')
+        else:
+            self.indicator.set_label('', '')
+        self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
+        if self.show_notifications and\
+                int(abs(float(old_value)-float(self.backlight)) /
+                    float(self.backlight)) > 5:
+            self.notification.update(
+                'Backlight-Indicator',
+                _('Backlight')+': %s' % self.backlight,
+                comun.STATUS_ICON[self.theme][0])
+            self.notification.show()
 
     def on_set_backlight_menu(self, widget):
         sbd = SetBacklightDialog(self.backlight)
@@ -328,31 +359,18 @@ backlight manually'))
             backlight = sbd.get_selected_backlight()
             sbd.hide()
             self.set_backlight(backlight)
-            if self.show_value:
-                self.indicator.set_label(str(int(self.backlight)), '')
-            else:
-                self.indicator.set_label('', '')
-            if self.show_notifications:
-                self.notification.update(
-                    'Backlight-Indicator',
-                    _('Backlight')+': %s' % self.backlight,
-                    comun.STATUS_ICON[self.theme][0])
-                self.notification.show()
         sbd.destroy()
 
-    def on_capture_backlight_menu(self, widget):
+    def get_backlight_from_webcam(self):
         backlight = self.webcam.get_backlight()
         print('=== captured backlight: %s ===' % (backlight))
         self.set_backlight(backlight)
-        if self.show_value:
-            self.indicator.set_label(str(int(self.backlight)), '')
-        else:
-            self.indicator.set_label('', '')
-        if self.show_notifications:
-            self.notification.update('Backlight-Indicator',
-                                     _('Backlight')+': %s' % self.backlight,
-                                     comun.STATUS_ICON[self.theme][0])
-            self.notification.show()
+        return backlight
+
+    def on_capture_backlight_menu(self, widget):
+        t = threading.Thread(target=self.get_backlight_from_webcam)
+        t.setDaemon(True)
+        t.start()
 
     def start_automatically(self):
         if self.wid != 0:
@@ -393,33 +411,11 @@ backlight manually'))
             self.notification.show()
 
     def do_the_work(self):
-        backlight = self.webcam.get_backlight()
-        # if self.change_on_ac and self.battery.is_ac():
-        if self.change_on_ac and Battery.is_ac():
-            if backlight < self.value_on_ac:
-                self.set_backlight(self.value_on_ac)
-            else:
-                self.set_backlight(backlight)
-        elif self.change_on_low_power and\
-                Battery.get_percentage() < 20:
-                # self.battery.get_percentage() < 20:
-            if backlight > self.value_on_low_power:
-                self.set_backlight(self.value_on_low_power)
-            else:
-                self.set_backlight(backlight)
-        else:
-            self.set_backlight(backlight)
-        if self.show_value:
-            self.indicator.set_label(str(int(self.backlight)), '')
-        else:
-            self.indicator.set_label('', '')
-        self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
-        if self.show_notifications:
-            self.notification.update(
-                'Backlight-Indicator',
-                _('Backlight')+': %s' % self.backlight,
-                comun.STATUS_ICON[self.theme][0])
-            self.notification.show()
+        print(1)
+        t = threading.Thread(target=self.get_backlight_from_webcam)
+        t.setDaemon(True)
+        t.start()
+
         return True
 
     def get_about_dialog(self):

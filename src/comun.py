@@ -52,6 +52,7 @@ PARAMS = {'first-time': True,
           'change-backlight-on-ac': False,
           'backlight-on-ac': 90,
           'reduce-backlight-on-low-power': True,
+          'low-battery-value': 20,
           'backlight-on-low-power': 30
           }
 

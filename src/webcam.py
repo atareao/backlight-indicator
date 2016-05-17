@@ -34,6 +34,7 @@ import os
 import time
 import tempfile
 import math
+import calculation
 
 Gst.init(None)
 
@@ -73,8 +74,8 @@ class Webcam:
         time.sleep(5)
         self.pipeline.set_state(Gst.State.NULL)
         # im = Image.open(self.temp_file).convert('L')
-        im = Image.open(self.temp_file).convert('L')
-        stat = ImageStat.Stat(im)
+        value = calculation.calculate_brightness_for_image(self.temp_file)
+        # value = int(ImageStat.Stat(im).extrema[0][1]/255.0*100)
         '''
         print('extrema', stat.extrema)
         print('mean', stat.mean)
@@ -87,7 +88,6 @@ class Webcam:
         if os.path.exists(self.temp_file):
             # os.remove(self.temp_file)
             pass
-        value = int(stat.extrema[0][1]/255.0*100)
         return value
 
 
