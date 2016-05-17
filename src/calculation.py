@@ -7,7 +7,7 @@ BODY_H = 0.25
 HEAD_W = 0.25
 HEAD_H = 0.25
 
-def calculate_brightness(r, g, b):
+def calculate_brightness_for_pixel(r, g, b):
     return math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
 
 def calculate_brightness_for_image(image):
@@ -26,7 +26,7 @@ def calculate_brightness_for_image(image):
                         (x < (1 - BODY_W) / 2 * width or\
                         x > (1 + BODY_W) / 2 * width)):
                     r, g, b = pix[x, y]
-                    brightness = int(calculate_brightness(r, g, b)/255)
+                    brightness = int(calculate_brightness_for_pixel(r, g, b)/255)
                     data.append(brightness)
     return mode(data)
 
