@@ -41,6 +41,7 @@ from gi.repository import Gio
 import time
 import os
 import webbrowser
+import subprocess
 import dbus
 from configurator import Configuration
 from preferences_dialog import PreferencesDialog
@@ -412,11 +413,23 @@ backlight manually'))
 
     def do_the_work(self):
         print(1)
-        t = threading.Thread(target=self.get_backlight_from_webcam)
-        t.setDaemon(True)
-        t.start()
+        if self.is_lid_open():   #only update the brigtness-setting if lid is open (no nothing if lid is closed)
+            t = threading.Thread(target=self.get_backlight_from_webcam)
+            t.setDaemon(True)
+            t.start()
 
         return True
+
+    def is_lid_open(self):
+        if os.path.isfile("/proc/acpi/button/lid/LID0/state"):
+            #check LID0 for status
+            lid_state = subprocess.getoutput(" grep -Po '(?<=^state:).*\w*$' /proc/acpi/button/lid/LID0/state | tr -d '[:space:]'")
+            if lid_state == "closed":
+                return False
+            else:
+                return True
+        else:
+            return True  #ignore check if file does not exist
 
     def get_about_dialog(self):
         """Create and populate the about dialog."""
