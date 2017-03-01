@@ -1,3 +1,16 @@
+backlight-indicator (0.4.0-0extras16.04.0) xenial; urgency=medium
+
+  * override backlight adjustment if laptop-lid is closed
+  * Added options for KDE
+
+ -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Wed, 01 Mar 2017 08:17:22 +0100
+
+backlight-indicator (0.3.0-0extras16.04.1) xenial; urgency=medium
+
+  * Changed brightness calculation for GNOME
+
+ -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Mon, 16 Jan 2017 21:44:32 +0100
+
 backlight-indicator (0.3.0-0extras16.04.0) xenial; urgency=medium
 
   * Added threads to capture image backlight

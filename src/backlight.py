@@ -44,18 +44,27 @@ DBUS_PROPS = {
         "interface": "org.mate.PowerManager.Backlight",
         "method-set": "SetBrightness",
         "method-get": "GetBrightness"
+    },
+    'kde': {
+        "service": "org.kde.Solid.PowerManagement",
+        "path": "/org/kde/Solid/PowerManagement/Actions/BrightnessControl",
+        "interface": "org.kde.Solid.PowerManagement.Actions.BrightnessControl",
+        "method-set": "setBrightness",
+        "method-get": "brightness"
     }
 }
 
 
 class BacklightManager:
     def __init__(self):
-        desktop = os.getenv('DESKTOP_SESSION', 'gnome')
-        properties = DBUS_PROPS[desktop]
+        self.desktop = os.getenv('DESKTOP_SESSION', 'gnome')
+        properties = DBUS_PROPS[self.desktop]
         self.callback = None
         self.bus = dbus.SessionBus()
         bus = dbus.SessionBus()
         proxy = bus.get_object(properties['service'], properties['path'])
+        self.properties_manager = dbus.Interface(
+            proxy, 'org.freedesktop.DBus.Properties')
         self.dbus_interface = dbus.Interface(
             proxy, dbus_interface=properties['interface'])
         self.get_value = self.dbus_interface.get_dbus_method(
@@ -65,10 +74,20 @@ class BacklightManager:
         self.callback = None
 
     def get_backlight(self):
+        if self.desktop == 'gnome':
+            curr_value = self.properties_manager.Get(
+                'org.gnome.SettingsDaemon.Power.Screen', 'Brightness')
+            return int(curr_value)
         return int(self.get_value())
 
     def set_backlight(self, value):
-        self.set_value(value)
+        if self.desktop == 'gnome':
+            curr_value = self.properties_manager.Set(
+                'org.gnome.SettingsDaemon.Power.Screen',
+                'Brightness',
+                value)
+        else:
+            self.set_value(value)
 
     def set_callback(self, callback):
         self.callback = callback

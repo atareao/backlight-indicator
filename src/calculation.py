@@ -22,6 +22,12 @@ def calculate_brightness_for_pixel(r, g, b):
                      0.068*math.pow(b, 2.0))
 
 
+def ponderate(value):
+    if value >= 15:
+        return (math.log10(value)-math.log10(10.0))*100.0
+    return value
+
+
 def calculate_brightness_for_image(image):
     im = Image.open(image)
     pix = im.load()
@@ -42,7 +48,7 @@ def calculate_brightness_for_image(image):
                 r, g, b = pix[x, y]
                 brightness = int(calculate_brightness_for_pixel(
                     r, g, b)/255.0*100.0)
-                data.append(brightness)
+                data.append(ponderate(brightness))
     '''
     mean()	Arithmetic mean (“average”) of data.
     median()	Median (middle value) of data.
