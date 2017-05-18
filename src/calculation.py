@@ -29,9 +29,9 @@ def ponderate(value):
 
 
 def calculate_brightness_for_image(image):
-    im = Image.open(image)
-    pix = im.load()
-    width, height = im.size
+    # im = Image.open(image)
+    pix = image.load()
+    width, height = image.size
     width = float(width)
     height = float(height)
     data = []
@@ -62,6 +62,7 @@ def calculate_brightness_for_image(image):
             max(data), min(data))
     '''
     return int(statistics.mean(data))
+
 
 if __name__ == '__main__':
     print(calculate_brightness_for_image(

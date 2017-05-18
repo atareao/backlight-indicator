@@ -26,7 +26,6 @@ try:
     gi.require_version('Gtk', '3.0')
     gi.require_version('AppIndicator3', '0.1')
     gi.require_version('Notify', '0.7')
-    gi.require_version('Gst', '1.0')
 except Exception as e:
     print(e)
     exit(-1)
@@ -38,7 +37,6 @@ from gi.repository import Notify
 from gi.repository import GObject
 from gi.repository import GLib
 from gi.repository import Gio
-import time
 import os
 import webbrowser
 import subprocess

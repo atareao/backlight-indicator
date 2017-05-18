@@ -21,18 +21,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import subprocess
-import shlex
+from acpilight import get_controllers, Controller
 
 
-def execute(command):
-    commandandargs = shlex.split(command)
-    return subprocess.check_output(commandandargs, universal_newlines=True)
-
-
-class BacklightManager():
+class BacklightManagerForGNOME():
 
     def __init__(self):
+        ctrls = get_controllers()
+        self.ctrl = Controller(next(iter(ctrls.values())))
         self.backlight = 0
         self.update_backlight()
 
@@ -41,19 +37,20 @@ class BacklightManager():
         return self.backlight
 
     def update_backlight(self):
-        self.backlight = float(execute('xbacklight -get'))
+        self.backlight = self.ctrl.brightness()
 
     def set_backlight(self, value):
-        execute('xbacklight -set %s' % (value))
+        self.ctrl.set_brightness(value)
         self.update_backlight()
 
+
 if __name__ == '__main__':
-    bm = BacklightManager()
+    bm = BacklightManagerForGNOME()
     print(bm.get_backlight())
     bm.set_backlight(50)
     print(bm.get_backlight())
     from webcam import Webcam
     wc = Webcam()
-    b = wc.get_brightness()
+    b = wc.get_backlight()
     print(b)
     bm.set_backlight(b)

@@ -17,8 +17,7 @@ Depends: ${misc:Depends}, ${python:Depends},
 	gir1.2-gdkpixbuf-2.0,
 	gir1.2-appindicator3-0.1,
 	gir1.2-notify-0.7,
-	gir1.2-gstreamer-1.0,
-	gir1.2-gst-plugins-base-1.0
+	python3-v4l2capture
 Description: Adjusts a laptop's backlight automatically
  Adjusts a laptop's backlight automatically, by using camera samples
  taken at a user definable interval. Also you can set backlight at

@@ -22,6 +22,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import dbus
 import os
+import shlex
+import subprocess
+from xbacklight import BacklightManagerForGNOME
 
 DBUS_PROPS = {
     'ubuntu': {
@@ -55,8 +58,18 @@ DBUS_PROPS = {
 }
 
 
+def execute(command):
+    commandandargs = shlex.split(command)
+    return subprocess.check_output(commandandargs, universal_newlines=True)
+
+
+def get_gnome_version():
+    return int(execute('gnome-shell --version').split(' ')[-1].split('.')[1])
+
+
 class BacklightManager:
     def __init__(self):
+        self.bm = BacklightManagerForGNOME()
         self.desktop = os.getenv('DESKTOP_SESSION', 'gnome')
         properties = DBUS_PROPS[self.desktop]
         self.callback = None
@@ -75,17 +88,23 @@ class BacklightManager:
 
     def get_backlight(self):
         if self.desktop == 'gnome':
-            curr_value = self.properties_manager.Get(
-                'org.gnome.SettingsDaemon.Power.Screen', 'Brightness')
+            if get_gnome_version() >= 24:
+                return self.bm.get_backlight()
+            else:
+                curr_value = self.properties_manager.Get(
+                    'org.gnome.SettingsDaemon.Power.Screen', 'Brightness')
             return int(curr_value)
         return int(self.get_value())
 
     def set_backlight(self, value):
         if self.desktop == 'gnome':
-            curr_value = self.properties_manager.Set(
-                'org.gnome.SettingsDaemon.Power.Screen',
-                'Brightness',
-                value)
+            if get_gnome_version() >= 24:
+                self.bm.set_backlight(value)
+            else:
+                self.properties_manager.Set(
+                    'org.gnome.SettingsDaemon.Power.Screen',
+                    'Brightness',
+                    value)
         else:
             self.set_value(value)
 
@@ -97,12 +116,8 @@ class BacklightManager:
             self.callback(changed_value)
 
 
-def sample(changed_value):
-    print('Example', changed_value)
-
 if __name__ == '__main__':
     ba = BacklightManager()
-    ba.set_callback(sample)
     print(ba.get_backlight())
     ba.set_backlight(40)
     print(ba.get_backlight())
