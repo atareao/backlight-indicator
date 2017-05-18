@@ -1,3 +1,9 @@
+backlight-indicator (0.5.0-0extras17.04.0) zesty; urgency=medium
+
+  * v4l2 capture 
+
+ -- Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>  Fri, 19 May 2017 00:18:46 +0200
+
 backlight-indicator (0.4.0-0extras16.04.0) xenial; urgency=medium
 
   * override backlight adjustment if laptop-lid is closed
