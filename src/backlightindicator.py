@@ -49,10 +49,8 @@ import comun
 from webcam import Webcam
 from backlight import BacklightManager
 import threading
-# from battery import Battery
 from battery2 import Battery
 
-gi.require_version('Gtk', '3.0')
 
 WEBICON = os.path.join(comun.SOCIALDIR, 'web.svg')
 TWITTERICON = os.path.join(comun.SOCIALDIR, 'twitter.svg')
@@ -90,7 +88,6 @@ class BacklightIndicator(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.wid = 0
-        # self.battery = Battery()
         self.webcam = Webcam()
         self.backlightManager = BacklightManager()
         self.icon = comun.ICON
@@ -129,7 +126,7 @@ class BacklightIndicator(GObject.GObject):
                 self.indicator.set_label('', '')
             if self.show_notifications:
                 self.notification.update('Backlight-Indicator',
-                                         _('Backlight')+': %s' % backlight,
+                                         _('Backlight') + ': %s' % backlight,
                                          comun.STATUS_ICON[self.theme][0])
                 self.notification.show()
         elif direcction == Gdk.ScrollDirection.DOWN:
@@ -142,7 +139,7 @@ class BacklightIndicator(GObject.GObject):
                 self.indicator.set_label('', '')
             if self.show_notifications:
                 self.notification.update('Backlight-Indicator',
-                                         _('Backlight')+': %s' % backlight,
+                                         _('Backlight') + ': %s' % backlight,
                                          comun.STATUS_ICON[self.theme][0])
                 self.notification.show()
 
@@ -232,8 +229,8 @@ class BacklightIndicator(GObject.GObject):
                               text=_('Follow us in Google+'),
                               conector_event='activate',
                               conector_action=lambda x: webbrowser.open(
-                                'https://plus.google.com/\
-                                118214486317320563625/posts'))
+                                  'https://plus.google.com/\
+118214486317320563625/posts'))
         facebook = add2menu(help_menu,
                             text=_('Follow us in Facebook'),
                             conector_event='activate',
@@ -337,6 +334,8 @@ backlight manually'))
                     value = self.minimum_backlight
         old_value = self.backlight
         self.backlight = int(value)
+        if self.backlight <= 0:
+            self.backlight = 1
         self.backlightManager.set_backlight(self.backlight)
         if self.show_value:
             self.indicator.set_label(str(int(self.backlight)), '')
@@ -344,11 +343,11 @@ backlight manually'))
             self.indicator.set_label('', '')
         self.indicator.set_icon(comun.STATUS_ICON[self.theme][0])
         if self.show_notifications and\
-                int(abs(float(old_value)-float(self.backlight)) /
+                int(abs(float(old_value) - float(self.backlight)) /
                     float(self.backlight)) > 5:
             self.notification.update(
                 'Backlight-Indicator',
-                _('Backlight')+': %s' % self.backlight,
+                _('Backlight') + ': %s' % self.backlight,
                 comun.STATUS_ICON[self.theme][0])
             self.notification.show()
 
@@ -411,7 +410,9 @@ backlight manually'))
 
     def do_the_work(self):
         print(1)
-        if self.is_lid_open():   #only update the brigtness-setting if lid is open (no nothing if lid is closed)
+        if self.is_lid_open():
+            # only update the brigtness-setting if lid is open
+            # (no nothing if lid is closed)
             t = threading.Thread(target=self.get_backlight_from_webcam)
             t.setDaemon(True)
             t.start()
@@ -420,14 +421,14 @@ backlight manually'))
 
     def is_lid_open(self):
         if os.path.isfile("/proc/acpi/button/lid/LID0/state"):
-            #check LID0 for status
+            # check LID0 for status
             lid_state = subprocess.getoutput(" grep -Po '(?<=^state:).*\w*$' /proc/acpi/button/lid/LID0/state | tr -d '[:space:]'")
             if lid_state == "closed":
                 return False
             else:
                 return True
         else:
-            return True  #ignore check if file does not exist
+            return True  # ignore check if file does not exist
 
     def get_about_dialog(self):
         """Create and populate the about dialog."""
@@ -494,13 +495,12 @@ Lorenzo Carbonell <https://launchpad.net/~lorenzo-carbonell>\n
 
 
 def main():
-    if dbus.SessionBus().\
-                          request_name('es.atareao.BacklightIndicator') != \
-                          dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
+    if dbus.SessionBus().request_name('es.atareao.BacklightIndicator') != \
+            dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
         print("application already running")
         exit(0)
     Notify.init('BacklightIndicator')
-    bi = BacklightIndicator()
+    BacklightIndicator()
     print(1)
     loop = GLib.MainLoop()
     print(2)
@@ -508,6 +508,7 @@ def main():
     print(3)
     Gtk.main()
     print(4)
+
 
 if __name__ == "__main__":
     main()

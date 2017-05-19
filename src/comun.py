@@ -82,6 +82,7 @@ else:
     DATADIR = os.path.normpath(os.path.join(ROOTDIR, '../data'))
     ICONDIR = os.path.normpath(os.path.join(ROOTDIR, '../data/icons'))
     SOCIALDIR = os.path.normpath(os.path.join(ROOTDIR, '../data/social'))
+    TESTDIR = os.path.normpath(os.path.join(ROOTDIR, '../data/test'))
     DEBIANDIR = os.path.normpath(os.path.join(ROOTDIR, '../debian'))
     CHANGELOG = os.path.join(DEBIANDIR, 'changelog')
     AUTOSTARTO = os.path.join(DATADIR,
