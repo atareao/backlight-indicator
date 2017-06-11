@@ -27,25 +27,47 @@ import calculation
 import select
 import v4l2capture
 
+DEVICES = ['/dev/video0', '/dev/video1', '/dev/video2']
+
 
 class Webcam:
     def __init__(self):
         # Open the video device.
-        self.video = v4l2capture.Video_device("/dev/video0")
-        self.size_x, self.size_y = self.video.set_format(1280, 1024)
+        found = False
+        for device in DEVICES:
+            try:
+                self.video = v4l2capture.Video_device(device)
+                self.size_x, self.size_y = self.video.set_format(1280, 1024)
+                self.video.create_buffers(1)
+                found = True
+                break
+            except Exception as e:
+                print(e)
+        if found is False:
+            raise(Exception)
 
     def get_backlight(self):
-        self.video.create_buffers(1)
-        self.video.start()
-        time.sleep(2)
-        self.video.queue_all_buffers()
-        select.select((self.video,), (), ())
-        image_data = self.video.read()
-        self.video.close()
-        image = Image.frombytes("RGB", (self.size_x, self.size_y), image_data)
-        value = calculation.calculate_brightness_for_image(image)
-        return value
+        image_data = None
+        try:
+            self.video.start()
+            time.sleep(2)
+            self.video.queue_all_buffers()
+            select.select((self.video,), (), ())
+            image_data = self.video.read()
+        except Exception as e:
+            print('-----', e, '-----')
+        finally:
+            self.video.stop()
+        if image_data is not None:
+            image = Image.frombytes("RGB",
+                                    (self.size_x, self.size_y),
+                                    image_data)
+            value = calculation.calculate_brightness_for_image(image)
+            return value
+        return None
 
+    def __del__(self):
+        self.video.close()
 
 if __name__ == '__main__':
     webcam = Webcam()

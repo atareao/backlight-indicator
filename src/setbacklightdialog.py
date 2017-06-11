@@ -32,7 +32,7 @@ class SetBacklightDialog(Gtk.Dialog):
     def __init__(self, value):
         #
         Gtk.Dialog.__init__(self,
-                            'Backlight Indicator | '+_('Set backlight'),
+                            'Backlight Indicator | ' + _('Set backlight'),
                             None,
                             Gtk.DialogFlags.MODAL |
                             Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -49,7 +49,7 @@ class SetBacklightDialog(Gtk.Dialog):
         vbox0.pack_start(frame0, False, True, 1)
         table0 = Gtk.Table(2, 2, False)
         frame0.add(table0)
-        label23 = Gtk.Label(_('Backlight')+':')
+        label23 = Gtk.Label(_('Backlight') + ':')
         label23.set_alignment(0, 0.5)
         table0.attach(label23, 0, 1, 0, 1,
                       xpadding=5, ypadding=5)
@@ -75,6 +75,7 @@ class SetBacklightDialog(Gtk.Dialog):
 
     def get_selected_backlight(self):
         return int(self.backlight.get_value())
+
 
 if __name__ == "__main__":
     cm = SetBacklightDialog(80)

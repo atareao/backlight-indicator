@@ -24,8 +24,13 @@
 import gi
 try:
     gi.require_version('Gtk', '3.0')
+    gi.require_version('Gdk', '3.0')
+    gi.require_version('GdkPixbuf', '2.0')
     gi.require_version('AppIndicator3', '0.1')
     gi.require_version('Notify', '0.7')
+    gi.require_version('GObject', '2.0')
+    gi.require_version('GLib', '2.0')
+    gi.require_version('Gio', '2.0')
 except Exception as e:
     print(e)
     exit(-1)
@@ -39,7 +44,6 @@ from gi.repository import GLib
 from gi.repository import Gio
 import os
 import webbrowser
-import subprocess
 import dbus
 from configurator import Configuration
 from preferences_dialog import PreferencesDialog
@@ -361,8 +365,11 @@ backlight manually'))
 
     def get_backlight_from_webcam(self):
         backlight = self.webcam.get_backlight()
-        print('=== captured backlight: %s ===' % (backlight))
-        self.set_backlight(backlight)
+        if backlight is not None:
+            print('=== captured backlight: %s ===' % (backlight))
+            self.set_backlight(backlight)
+        else:
+            print('=== something happens ===')
         return backlight
 
     def on_capture_backlight_menu(self, widget):
@@ -409,21 +416,25 @@ backlight manually'))
             self.notification.show()
 
     def do_the_work(self):
-        print(1)
         if self.is_lid_open():
+            print('lid open')
             # only update the brigtness-setting if lid is open
             # (no nothing if lid is closed)
             t = threading.Thread(target=self.get_backlight_from_webcam)
             t.setDaemon(True)
             t.start()
+        else:
+            print('lid closed')
 
         return True
 
     def is_lid_open(self):
-        if os.path.isfile("/proc/acpi/button/lid/LID0/state"):
+        if os.path.isfile('/proc/acpi/button/lid/LID0/state'):
+            lid_state = None
             # check LID0 for status
-            lid_state = subprocess.getoutput(" grep -Po '(?<=^state:).*\w*$' /proc/acpi/button/lid/LID0/state | tr -d '[:space:]'")
-            if lid_state == "closed":
+            with open('/proc/acpi/button/lid/LID0/state') as afile:
+                lid_state = afile.read().split(':')[1].strip()
+            if lid_state == 'closed':
                 return False
             else:
                 return True
@@ -495,19 +506,15 @@ Lorenzo Carbonell <https://launchpad.net/~lorenzo-carbonell>\n
 
 
 def main():
+    print('=== starting Backlight Indicator ===')
     if dbus.SessionBus().request_name('es.atareao.BacklightIndicator') != \
             dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
         print("application already running")
         exit(0)
     Notify.init('BacklightIndicator')
     BacklightIndicator()
-    print(1)
-    loop = GLib.MainLoop()
-    print(2)
-    loop.run()
-    print(3)
+    print('=== started Backlight Indicator === ')
     Gtk.main()
-    print(4)
 
 
 if __name__ == "__main__":

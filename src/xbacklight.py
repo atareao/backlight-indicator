@@ -21,14 +21,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from acpilight import get_controllers, Controller
+#import imp
 
+#acpilight = imp.load_module('acpilight', '/usr/bin/acpilight')
+import acpilight
 
 class BacklightManagerForGNOME():
 
     def __init__(self):
-        ctrls = get_controllers()
-        self.ctrl = Controller(next(iter(ctrls.values())))
+        ctrls = acpilight.get_controllers()
+        self.ctrl = acpilight.Controller(next(iter(ctrls.values())))
         self.backlight = 0
         self.update_backlight()
 
