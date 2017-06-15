@@ -92,7 +92,6 @@ class BacklightIndicator(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.wid = 0
-        self.webcam = Webcam()
         self.backlightManager = BacklightManager()
         self.icon = comun.ICON
         self.active_icon = None
@@ -364,7 +363,7 @@ backlight manually'))
         sbd.destroy()
 
     def get_backlight_from_webcam(self):
-        backlight = self.webcam.get_backlight()
+        backlight = Webcam.get_backlight()
         if backlight is not None:
             print('=== captured backlight: %s ===' % (backlight))
             self.set_backlight(backlight)
